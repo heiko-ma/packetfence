@@ -31,6 +31,7 @@ use HTTP::Request::Common;
 use pf::log;
 use pf::constants;
 use pf::accounting qw(node_accounting_dynauth_attr);
+use pf::ip4log qw(mac2ip);
 use pf::config qw ($WEBAUTH_WIRELESS);
 use pf::constants::role qw($REJECT_ROLE);
 
@@ -203,9 +204,12 @@ sub deauthenticateMacDefault {
     #Fetching the acct-session-id
     my $dynauth = node_accounting_dynauth_attr($mac);
 
+    #Fetching the ip address
+    my $ipAddress = pf::ip4log::mac2ip($mac);
+
     $logger->debug("deauthenticate $mac using RADIUS Disconnect-Request deauth method");
     return $self->radiusDisconnect(
-        $mac, { 'Acct-Session-Id' => $dynauth->{'acctsessionid'}, 'User-Name' => $dynauth->{'username'} },
+        $mac, { 'Acct-Session-Id' => $dynauth->{'acctsessionid'}, 'User-Name' => $dynauth->{'username'}, 'Framed-IP-Address' => $ipAddress },
     );
 }
 
